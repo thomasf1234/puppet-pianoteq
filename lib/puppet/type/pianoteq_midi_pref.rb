@@ -37,7 +37,7 @@ Puppet::Type.newtype(:pianoteq_midi_pref) do
     end
   end
 
-  autorequire(:package) do
+  autonotify(:service) do
     ['pianoteq']
   end
 end

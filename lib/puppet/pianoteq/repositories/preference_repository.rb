@@ -108,7 +108,9 @@ module Pianoteq
         if File.exist?(PATH)
           xml = File.read(PATH)
           document = REXML::Document.new(xml)
-        else
+        end
+
+        if document.nil? || document.elements['PROPERTIES'].nil?
           document = REXML::Document.new
           xml_decl = REXML::XMLDecl.new('1.0', 'UTF-8')
           document.add(xml_decl)
