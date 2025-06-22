@@ -12,13 +12,15 @@ require 'puppet/pianoteq/models/audio_preference'
 module Pianoteq
   module Repositories
     class PreferenceRepository  
-      PATH = '/etc/opt/pianoteq/8.4.1/pianoteq.prefs'
+      def initialize
+        @path = "/etc/opt/pianoteq/#{get_version}/pianoteq.prefs"
+      end
 
       def all
         preferences = []
-        return preferences if !File.exist?(PATH) 
+        return preferences if !File.exist?(@path) 
 
-        xml = File.read(PATH)
+        xml = File.read(@path)
         document = REXML::Document.new(xml)
 
         document.elements.each('PROPERTIES/VALUE') do |element|
@@ -38,9 +40,9 @@ module Pianoteq
       def find(preference_name)
         raise ArgumentError.new("preference #{preference_name} not supported") if !type_mappings.keys.include?(preference_name)
 
-        return nil if !File.exist?(PATH) 
+        return nil if !File.exist?(@path) 
 
-        xml = File.read(PATH)
+        xml = File.read(@path)
         document = REXML::Document.new(xml)
 
         element = document.elements["PROPERTIES/VALUE[@name='#{preference_name}']"] 
@@ -105,8 +107,8 @@ module Pianoteq
         document = nil
 
         # load document or build new
-        if File.exist?(PATH)
-          xml = File.read(PATH)
+        if File.exist?(@path)
+          xml = File.read(@path)
           document = REXML::Document.new(xml)
         end
 
@@ -129,7 +131,12 @@ module Pianoteq
         xml
 
         # save xml
-        File.write(PATH, xml)
+        File.write(@path, xml)
+      end
+
+      # TODO : Find a cleaner/pure way in the implementation to determine this
+      def get_version
+        `dpkg-query --showformat='\${Version}' --show pianoteq`.strip
       end
     end
   end

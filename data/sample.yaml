@@ -1,0 +1,14 @@
+pianoteq::ensure: latest
+
+pianoteq::multicore: true
+pianoteq::voices: 48
+pianoteq::voices_thresh: 100
+pianoteq::engine_rate: 44100
+pianoteq::user_root_folder: /var/opt/pianoteq/8.4.1
+pianoteq::welcome_done: true
+pianoteq::midi_archive_enabled: true
+pianoteq::force_touchscreen_mode: false
+   
+pianoteq::midi_setup:
+  listen_all: true
+  devices: []

@@ -2,30 +2,29 @@ require 'rexml/document'
 require 'puppet/pianoteq/repositories/preference_repository'
 require 'puppet/pianoteq/models/value_preference'
 
-Puppet::Type.type(:pianoteq_midi_pref).provide(:file) do 
-  desc 'Manage Pianoteq MIDI preferences in the .prefs file'
+#http://garylarizza.com/blog/2013/12/15/seriously-what-is-this-provider-doing/
+
+Puppet::Type.type(:pianoteq_value_pref).provide(:ruby) do 
+  desc 'Manage Pianoteq value preferences in the .prefs file'
+
+  #confine feature :rexml 
 
   # convience getter/setter to pull properties from @property_hash
   mk_resource_methods
 
   # loads all resources on the system and populates @property_hash for our resource with the current state
   def self.instances
-    preference_repository = Pianoteq::Repositories::PreferenceRepository.new
-    midi_preference = preference_repository.find('midi-setup')
-
-    return [] if midi_preference.nil?
-
     instances = []
 
-    listen_all = [true, false].include?(midi_preference.listen_all) ? midi_preference.listen_all.to_s.to_sym : midi_preference.listen_all
+    preference_repository = Pianoteq::Repositories::PreferenceRepository.new
+    preferences = preference_repository.all.select { |preference| preference.kind_of?(Pianoteq::Models::ValuePreference) }
 
-    attributes_hash = { 
-      ensure: :present, 
-      name: 'midi-setup',
-      listen_all: listen_all,
-      devices: midi_preference.devices
-    }
-    instances << new(attributes_hash) 
+    preferences.each do |preference|
+      # puppet doesn't support true and false as safe_insync? assumes a value of false is in sync. 
+      value = [true, false].include?(preference.value) ? preference.value.to_s.to_sym : preference.value
+      attributes_hash = { ensure: :present, value: value, name: preference.name }
+      instances << new(attributes_hash) 
+    end
     
     instances
   end
@@ -49,8 +48,7 @@ Puppet::Type.type(:pianoteq_midi_pref).provide(:file) do
   def create
     @property_hash[:ensure] = :present
     @property_hash[:name] = resource[:name]
-    @property_hash[:listen_all] = resource[:listen_all]
-    @property_hash[:devices] = resource[:devices]
+    @property_hash[:value] = resource[:value]
   end
 
   def destroy
@@ -62,16 +60,17 @@ Puppet::Type.type(:pianoteq_midi_pref).provide(:file) do
     preference_repository = Pianoteq::Repositories::PreferenceRepository.new
 
     if @property_hash[:ensure] == :present
-      preference = Pianoteq::Models::MidiPreference.new('midi-setup')
+      preference_klass = preference_repository.type_mappings[@property_hash[:name]]
 
-      listen_all = [:true, :false].include?(@property_hash[:listen_all]) ? @property_hash[:listen_all] == :true : @property_hash[:listen_all]
-      preference.listen_all = listen_all
-      preference.devices = @property_hash[:devices]
+      # puppet doesn't support true and false as safe_insync? assumes a value of false is in sync. 
+      value = [:true, :false].include?(@property_hash[:value]) ? @property_hash[:value] == :true : @property_hash[:value]
+      preference = preference_klass.new(@property_hash[:name], value)
+
       preference_repository.save(preference)
     end
 
     if @property_hash[:ensure] == :absent
-      preference_repository.delete('midi-setup')
+      preference_repository.delete(@property_hash[:name])
     end
   end
 end

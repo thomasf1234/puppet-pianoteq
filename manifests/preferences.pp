@@ -45,6 +45,7 @@ class pianoteq::preferences {
     }
   }
 
+  #/var/opt/pianoteq/8.4.1
   $user_root_folder = lookup('pianoteq::user_root_folder', { 'default_value' => undef })
   if $user_root_folder {
     pianoteq_value_pref { 'user_root_folder':

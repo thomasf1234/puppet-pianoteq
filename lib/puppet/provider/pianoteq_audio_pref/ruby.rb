@@ -2,7 +2,7 @@ require 'rexml/document'
 require 'puppet/pianoteq/repositories/preference_repository'
 require 'puppet/pianoteq/models/audio_preference'
 
-Puppet::Type.type(:pianoteq_audio_pref).provide(:file) do 
+Puppet::Type.type(:pianoteq_audio_pref).provide(:ruby) do 
   desc 'Manage Pianoteq audio preferences in the .prefs file'
 
   # convience getter/setter to pull properties from @property_hash

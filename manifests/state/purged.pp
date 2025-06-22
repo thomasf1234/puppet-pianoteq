@@ -5,7 +5,7 @@ class pianoteq::state::absent {
   }
 
   package { 'pianoteq':
-    ensure => absent,
+    ensure => purged,
     require => Service['pianoteq']
   }
 }
